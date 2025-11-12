@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Magic Units Pro — 3dp Build (Rebuilt)</title>
+  <style>
+    :root { --bg:#0b1220; --card:#111a2b; --accent:#00bfa6; --accent-2:#0078d4; --text:#e8f0ff; --muted:#a6b0c0; --ok:#37d67a; --danger:#ff6b6b; }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(1200px 800px at 10% 10%, rgba(0,191,166,.15),transparent),radial-gradient(1200px 800px at 90% 0%, rgba(0,120,212,.15),transparent),var(--bg);color:var(--text)}
+    header{padding:1.25rem;text-align:center} header h1{margin:0 0 .25rem;font-size:clamp(1.3rem,2.2vw,2rem)} header p{margin:0;color:var(--muted)}
+    .wrap{max-width:1200px;margin:0 auto;padding:1rem} .grid{display:grid;grid-template-columns:1fr;gap:1rem} @media(min-width:1000px){.grid{grid-template-columns:360px 1fr}}
+    .card{background:color-mix(in srgb,var(--card) 92%,transparent);border:1px solid rgba(255,255,255,.06);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    .card h2{margin:0;padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.06);font-size:1rem;color:var(--muted);letter-spacing:.02em}
+    .card .body{padding:1rem 1.25rem}
+    label{font-size:.9rem;color:var(--muted);display:block;margin:.5rem 0 .35rem}
+    input,select,button{font:inherit}
+    input,select{width:100%;padding:.7rem .8rem;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:#0e1626;color:var(--text);outline:none}
+    input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem} .row-3{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem}
+    .btn{width:100%;padding:.85rem 1rem;border-radius:12px;border:none;cursor:pointer;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;font-weight:600;letter-spacing:.02em}
+    .btn.alt{background:#0e1626;border:1px solid rgba(255,255,255,.08);color:var(--text)} .btn:disabled{opacity:.6;cursor:not-allowed}
+    .result{margin-top:.75rem;padding:.9rem;border-radius:10px;background:#0e1626;border:1px solid rgba(255,255,255,.08);color:var(--text)}
+    .muted{color:var(--muted);font-size:.9rem}
+    .tabs{display:flex;gap:.4rem;flex-wrap:wrap} .tabs button{flex:1;padding:.6rem .8rem;background:#0e1626;color:var(--text);border:1px solid rgba(255,255,255,.08);border-radius:10px;cursor:pointer}
+    .tabs button.active{background:linear-gradient(90deg,var(--accent),var(--accent-2));border-color:transparent}
+    .section{display:none} .section.active{display:block}
+    .wizard-steps{display:flex;gap:.35rem;margin-bottom:.8rem} .wizard-steps div{height:6px;flex:1;background:#0e1626;border-radius:999px;border:1px solid rgba(255,255,255,.08)} .wizard-steps .on{background:linear-gradient(90deg,var(--accent),var(--accent-2));border-color:transparent}
+    .note{border-left:3px solid var(--accent);padding-left:.75rem;margin:.75rem 0;color:var(--muted)} .ok{color:var(--ok)} .fail{color:var(--danger)} .pass{color:var(--ok)}
+    .test-list{margin:.5rem 0 0;padding-left:1.1rem}
+    /* Easter egg fab */
+    .egg-fab{position:fixed;right:16px;bottom:16px;width:44px;height:44px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer;user-select:none}
+    .egg-fab:hover{transform:translateY(-1px)}
+    .egg-fab:active{transform:translateY(0)}
+
+    /* About fab */
+    .about-fab{position:fixed;right:72px;bottom:16px;width:44px;height:44px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:#0e1626;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer;user-select:none}
+    .about-fab:hover{border-color:rgba(255,255,255,.25)}
+
+    /* Modal styles */
+    .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:1000}
+    .modal{width:min(560px,92vw);background:linear-gradient(180deg, rgba(17,26,43,.95), rgba(14,22,38,.95));border:1px solid rgba(255,255,255,.08);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:hidden}
+    .modal header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+    .modal header h3{margin:0;font-size:1.05rem;color:var(--text)}
+    .modal .content{padding:16px}
+    .modal .content p{margin:.35rem 0;color:var(--muted)}
+    .pill{display:inline-block;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:.25rem .6rem;font-size:.8rem;color:var(--text);margin-right:.4rem}
+    .close-btn{background:#0e1626;border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:10px;padding:.45rem .7rem;cursor:pointer}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Magic Units Pro</h1>
+    <p>Responsive, engineer‑friendly unit conversions — with live currency and an Engineering Wizard.</p>
+  </header>
+
+  <div class="wrap grid">
+    <!-- LEFT: Category & Inputs -->
+    <div class="card">
+      <h2>Quick Converter</h2>
+      <div class="body">
+        <label for="category">Conversion Category</label>
+        <select id="category" onchange="updateUnits()">
+          <option value="length">Lengths</option>
+          <option value="weight">Weights</option>
+          <option value="volume">Volume</option>
+          <option value="speed">Speed</option>
+          <option value="temperature">Temperature</option>
+          <option value="currency">Currency (Live)</option>
+        </select>
+
+        <div class="row">
+          <div>
+            <label for="value">Value</label>
+            <input id="value" type="number" placeholder="Enter a number" />
+          </div>
+          <div>
+            <label class="muted">&nbsp;</label>
+            <button class="btn" onclick="convert()">Convert</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="from">From</label>
+            <select id="from"></select>
+          </div>
+          <div>
+            <label for="to">To</label>
+            <select id="to"></select>
+          </div>
+        </div>
+
+        <div id="quickResult" class="result" role="status" aria-live="polite">Result will appear here.</div>
+        <div class="note muted" id="fxNote">Tip: Currency rates are fetched from Frankfurter.app when you choose Currency.</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Engineering Wizard -->
+    <div class="card">
+      <h2>Engineering Wizard</h2>
+      <div class="body">
+        <div class="wizard-steps"><div id="w1" class="on"></div><div id="w2"></div><div id="w3"></div></div>
+        <div class="tabs" role="tablist">
+          <button class="active" data-tab="pressure" onclick="wizTab(this)">Pressure</button>
+          <button data-tab="torque" onclick="wizTab(this)">Torque</button>
+          <button data-tab="power" onclick="wizTab(this)">Power</button>
+          <button data-tab="energy" onclick="wizTab(this)">Energy</button>
+          <button data-tab="stress" onclick="wizTab(this)">Material Stress</button>
+          <button data-tab="drill" onclick="wizTab(this)">Drill & Tap</button>
+          <button data-tab="thread" onclick="wizTab(this)">Thread Pitch</button>
+        </div>
+
+        <!-- Pressure -->
+        <section id="tab-pressure" class="section active">
+          <div class="row">
+            <div>
+              <label for="pVal">Value</label><input type="number" id="pVal" placeholder="e.g. 250" />
+            </div>
+            <div>
+              <label for="pFrom">From</label>
+              <select id="pFrom"></select>
+            </div>
+          </div>
+          <label for="pTo">To</label><select id="pTo"></select>
+          <button class="btn" onclick="calcPressure()">Convert Pressure</button>
+          <div id="pOut" class="result"></div>
+        </section>
+
+        <!-- Torque -->
+        <section id="tab-torque" class="section">
+          <div class="row">
+            <div><label for="tVal">Value</label><input type="number" id="tVal" placeholder="e.g. 120" /></div>
+            <div><label for="tFrom">From</label><select id="tFrom"></select></div>
+          </div>
+          <label for="tTo">To</label><select id="tTo"></select>
+          <button class="btn" onclick="calcTorque()">Convert Torque</button>
+          <div id="tOut" class="result"></div>
+        </section>
+
+        <!-- Power -->
+        <section id="tab-power" class="section">
+          <div class="row">
+            <div><label for="pwVal">Value</label><input type="number" id="pwVal" placeholder="e.g. 2.2" /></div>
+            <div><label for="pwFrom">From</label><select id="pwFrom"></select></div>
+          </div>
+          <label for="pwTo">To</label><select id="pwTo"></select>
+          <button class="btn" onclick="calcPower()">Convert Power</button>
+          <div id="pwOut" class="result"></div>
+        </section>
+
+        <!-- Energy -->
+        <section id="tab-energy" class="section">
+          <div class="row">
+            <div><label for="eVal">Value</label><input type="number" id="eVal" placeholder="e.g. 500" /></div>
+            <div><label for="eFrom">From</label><select id="eFrom"></select></div>
+          </div>
+          <label for="eTo">To</label><select id="eTo"></select>
+          <button class="btn" onclick="calcEnergy()">Convert Energy</button>
+          <div id="eOut" class="result"></div>
+        </section>
+
+        <!-- Material Stress + Safety Factor -->
+        <section id="tab-stress" class="section">
+          <p class="muted">Compute stress and an estimated safety factor (n = Yield / Applied). Choose units for force & area.</p>
+          <div class="row-3">
+            <div>
+              <label for="sForce">Force</label>
+              <input type="number" id="sForce" placeholder="e.g. 15000" />
+              <select id="sForceU"><option>N</option><option>lbf</option></select>
+            </div>
+            <div>
+              <label for="sArea">Area</label>
+              <input type="number" id="sArea" placeholder="e.g. 250" />
+              <select id="sAreaU"><option>mm²</option><option>in²</option></select>
+            </div>
+            <div>
+              <label for="sYield">Material Yield</label>
+              <input type="number" id="sYield" placeholder="e.g. 250 (MPa)" />
+              <select id="sYieldU"><option>MPa</option><option>psi</option></select>
+            </div>
+          </div>
+          <button class="btn" onclick="calcStress()">Calculate Stress & Safety Factor</button>
+          <div id="sOut" class="result"></div>
+        </section>
+
+        <!-- Drill & Tap Guide -->
+        <section id="tab-drill" class="section">
+          <p class="muted">Pick a standard or enter any size to estimate a tap drill. Formulas: Metric ≈ Major − Pitch. Imperial ≈ Major − (1 / TPI).</p>
+          <div class="row">
+            <div>
+              <label for="dtStd">Standard</label>
+              <select id="dtStd" onchange="loadDrillTapChoices()">
+                <option value="metric">Metric (ISO)</option>
+                <option value="unc">UNC (coarse)</option>
+                <option value="unf">UNF (fine)</option>
+              </select>
+            </div>
+            <div>
+              <label for="dtSize">Nominal Size</label>
+              <select id="dtSize"></select>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="dtMajor">Custom Major Diameter</label>
+              <input id="dtMajor" type="number" step="0.01" placeholder="mm or inch" />
+            </div>
+            <div>
+              <label for="dtPitch">Pitch / TPI</label>
+              <input id="dtPitch" type="number" step="0.01" placeholder="mm pitch or TPI" />
+            </div>
+          </div>
+          <div class="row">
+            <button class="btn" onclick="calcDrillTap()">Get Tap Drill</button>
+            <button class="btn alt" onclick="copyDT()">Copy Result</button>
+          </div>
+          <div id="dtOut" class="result"></div>
+        </section>
+
+        <!-- Thread Pitch Helper -->
+        <section id="tab-thread" class="section">
+          <p class="muted">Compute pitch ↔ TPI, lead for multi‑start, and helix angle (approx.).</p>
+          <div class="row-3">
+            <div>
+              <label for="thDia">Diameter</label>
+              <input id="thDia" type="number" step="0.001" placeholder="mm" />
+            </div>
+            <div>
+              <label for="thPitch">Pitch</label>
+              <input id="thPitch" type="number" step="0.001" placeholder="mm" />
+            </div>
+            <div>
+              <label for="thStarts">Starts</label>
+              <input id="thStarts" type="number" value="1" />
+            </div>
+          </div>
+          <div class="row">
+            <button class="btn" onclick="calcThread()">Calculate</button>
+            <button class="btn alt" onclick="copyThread()">Copy Result</button>
+          </div>
+          <div id="thOut" class="result"></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- TEST RUNNER (hidden by default; reveal with 🥚) -->
+    <div id="testCard" class="card" style="grid-column:1 / -1; display:none;">
+      <h2>Unit Tests</h2>
+      <div class="body">
+        <p class="muted">Run deterministic tests on conversion helpers (currency excluded due to live API). Results show expected vs actual where relevant.</p>
+        <div class="row">
+          <button class="btn" onclick="runTests()">Run Unit Tests</button>
+          <button class="btn alt" onclick="clearTests()">Clear</button>
+        </div>
+        <div id="testSummary" class="result" style="margin-top:1rem;">No tests run yet.</div>
+        <ol id="testList" class="test-list"></ol>
+      </div>
+    </div>
+
+    <!-- FULL RESULTS / HELP -->
+    <div class="card" style="grid-column: 1 / -1;">
+      <h2>Reference & Notes</h2>
+      <div class="body">
+        <details>
+          <summary>Supported Quick‑Convert units</summary>
+          <ul class="muted">
+            <li><b>Lengths</b>: metres, kilometres, miles, feet</li>
+            <li><b>Weights</b>: grams, kilograms, pounds, ounces</li>
+            <li><b>Volume</b>: litres, millilitres, gallons (US), cups (metric)</li>
+            <li><b>Speed</b>: m/s, km/h, mph, knots</li>
+            <li><b>Temperature</b>: °C, °F, K</li>
+            <li><b>Currency</b>: Live AUD base via Frankfurter.app</li>
+          </ul>
+        </details>
+        <details>
+          <summary>Engineering Wizard coverage</summary>
+          <ul class="muted">
+            <li>Pressure, Torque, Power, Energy conversions</li>
+            <li>Material stress & safety factor (MPa/psi, N/lbf, mm²/in²)</li>
+            <li>Drill & Tap: ISO metric, UNC, UNF lookups + formula estimate</li>
+            <li>Thread pitch helper: pitch↔TPI, lead, helix angle</li>
+          </ul>
+        </details>
+        <p class="muted">All calculations run in‑browser. For critical engineering work, verify against standards and manufacturer data.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Formatting helper: 3 decimal places everywhere =====
+    const DP = 3;
+    const fmt = (n, dp = DP) => {
+      const num = Number(n);
+      if (!Number.isFinite(num)) return String(n);
+      return num.toFixed(dp);
+    };
+
+    // ================= Quick Converter =================
+    const unitSets = {
+      length: { metres: 1, kilometres: 0.001, miles: 0.000621371, feet: 3.28084 },
+      weight: { grams: 1, kilograms: 0.001, pounds: 0.00220462, ounces: 0.035274 },
+      volume: { litres: 1, millilitres: 1000, gallons: 0.264172, cups: 4.22675 },
+      speed: { 'm/s': 1, 'km/h': 3.6, 'mph': 2.2369362920544, 'knots': 1.943844492 },
+      temperature: { '°C': 'c', '°F': 'f', 'K': 'k' },
+      currency: {}
+    };
+
+    async function ensureCurrency() {
+      if (Object.keys(unitSets.currency).length) return;
+      try {
+        const res = await fetch('https://api.frankfurter.app/latest?from=AUD');
+        const data = await res.json();
+        unitSets.currency = { AUD: 1, ...data.rates };
+        document.getElementById('fxNote').innerHTML = `Rates date: <span class="ok">${data.date}</span> (Frankfurter.app)`;
+        if (document.getElementById('category').value === 'currency') updateUnits();
+      } catch (e) {
+        document.getElementById('fxNote').textContent = 'Live currency fetch failed. Try again later.';
+      }
+    }
+
+    function updateUnits() {
+      const cat = document.getElementById('category').value;
+      if (cat === 'currency') ensureCurrency();
+      const from = document.getElementById('from');
+      const to = document.getElementById('to');
+      from.innerHTML = '';
+      to.innerHTML = '';
+
+      if (cat === 'temperature') {
+        Object.keys(unitSets.temperature).forEach(u => {
+          from.insertAdjacentHTML('beforeend', `<option>${u}</option>`);
+          to.insertAdjacentHTML('beforeend', `<option>${u}</option>`);
+        });
+        to.selectedIndex = 1;
+        return;
+      }
+
+      Object.keys(unitSets[cat]).forEach(u => {
+        from.insertAdjacentHTML('beforeend', `<option>${u}</option>`);
+        to.insertAdjacentHTML('beforeend', `<option>${u}</option>`);
+      });
+      to.selectedIndex = 1;
+    }
+
+    function convertTemperature(val, from, to) {
+      let c;
+      if (from === '°C') c = val; else if (from === '°F') c = (val - 32) * 5/9; else c = val - 273.15; // K->C
+      if (to === '°C') return c;
+      if (to === '°F') return (c * 9/5) + 32;
+      return c + 273.15; // to K
+    }
+
+    async function convert() {
+      const cat = document.getElementById('category').value;
+      const val = parseFloat(document.getElementById('value').value);
+      const from = document.getElementById('from').value;
+      const to = document.getElementById('to').value;
+      const out = document.getElementById('quickResult');
+      if (isNaN(val)) { out.textContent = 'Enter a valid number'; return; }
+
+      if (cat === 'currency') {
+        try {
+          const res = await fetch(`https://api.frankfurter.app/latest?amount=${val}&from=${from}&to=${to}`);
+          const data = await res.json();
+          const v = data.rates[to];
+          out.textContent = `${fmt(val)} ${from} = ${v?.toFixed ? Number(v).toFixed(DP) : v} ${to}`;
+        } catch (e) {
+          out.textContent = 'Currency conversion failed.';
+        }
+        return;
+      }
+
+      if (cat === 'temperature') {
+        const result = convertTemperature(val, from, to);
+        out.textContent = `${fmt(val)} ${from} = ${fmt(result)} ${to}`;
+        return;
+      }
+
+      const r = unitSets[cat];
+      const result = (val / r[from]) * r[to];
+      out.textContent = `${fmt(val)} ${from} = ${fmt(result)} ${to}`;
+    }
+
+    // ================= Engineering Wizard =================
+    function wizTab(el){
+      document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+      el.classList.add('active');
+      const id = el.dataset.tab;
+      document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+      document.getElementById('tab-'+id).classList.add('active');
+      document.getElementById('w1').classList.add('on');
+      document.getElementById('w2').classList.remove('on');
+      document.getElementById('w3').classList.remove('on');
+    }
+
+    // Common maps for wizard
+    const pressureMap = { Pa:1, kPa:1e-3, MPa:1e-6, bar:1e-5, psi:0.0001450377377 };
+    const torqueMap = { 'N·m':1, 'lb·ft':0.737562149, 'kg·cm':10.19716213 };
+    const powerMap = { W:1, kW:1e-3, hp:0.001341022 }; // mech hp
+    const energyMap = { J:1, kJ:1e-3, cal:0.239005736, Wh:1/3600, kWh:1/3.6e6 };
+
+    function fillSelect(sel, map){ sel.innerHTML=''; Object.keys(map).forEach(k=> sel.insertAdjacentHTML('beforeend', `<option>${k}</option>`)); }
+
+    // Fill on load
+    fillSelect(document.getElementById('pFrom'), pressureMap); fillSelect(document.getElementById('pTo'), pressureMap);
+    fillSelect(document.getElementById('tFrom'), torqueMap); fillSelect(document.getElementById('tTo'), torqueMap);
+    fillSelect(document.getElementById('pwFrom'), powerMap); fillSelect(document.getElementById('pwTo'), powerMap);
+    fillSelect(document.getElementById('eFrom'), energyMap); fillSelect(document.getElementById('eTo'), energyMap);
+
+    function genericConvert(val, from, to, map){ return (val / map[from]) * map[to]; }
+
+    function calcPressure(){
+      const v = parseFloat(document.getElementById('pVal').value); if (isNaN(v)) return out('pOut','Enter a value');
+      const f = document.getElementById('pFrom').value, t = document.getElementById('pTo').value;
+      out('pOut', `${fmt(v)} ${f} = ${fmt(genericConvert(v,f,t,pressureMap))} ${t}`);
+      step2();
+    }
+    function calcTorque(){
+      const v = parseFloat(document.getElementById('tVal').value); if (isNaN(v)) return out('tOut','Enter a value');
+      const f = document.getElementById('tFrom').value, t = document.getElementById('tTo').value;
+      out('tOut', `${fmt(v)} ${f} = ${fmt(genericConvert(v,f,t,torqueMap))} ${t}`);
+      step2();
+    }
+    function calcPower(){
+      const v = parseFloat(document.getElementById('pwVal').value); if (isNaN(v)) return out('pwOut','Enter a value');
+      const f = document.getElementById('pwFrom').value, t = document.getElementById('pwTo').value;
+      out('pwOut', `${fmt(v)} ${f} = ${fmt(genericConvert(v,f,t,powerMap))} ${t}`);
+      step2();
+    }
+    function calcEnergy(){
+      const v = parseFloat(document.getElementById('eVal').value); if (isNaN(v)) return out('eOut','Enter a value');
+      const f = document.getElementById('eFrom').value, t = document.getElementById('eTo').value;
+      out('eOut', `${fmt(v)} ${f} = ${fmt(genericConvert(v,f,t,energyMap))} ${t}`);
+      step2();
+    }
+
+    function out(id, msg){ document.getElementById(id).textContent = msg; }
+    function step2(){ document.getElementById('w2').classList.add('on'); }
+
+    // Stress & Safety Factor helpers (pure)
+    function stressMPa(F, Fu, A, Au){
+      const F_N = Fu==='N'? F : F*4.4482216152605;
+      const A_mm2 = Au==='mm²'? A : A*645.16;
+      return F_N / A_mm2; // MPa
+    }
+    function safetyFactor(yieldVal, yieldUnit, stress){
+      const yMPa = yieldUnit==='MPa'? yieldVal : yieldVal*0.00689475729;
+      return yMPa / stress;
+    }
+
+    function calcStress(){
+      const F = parseFloat(document.getElementById('sForce').value);
+      const A = parseFloat(document.getElementById('sArea').value);
+      const Fy = parseFloat(document.getElementById('sYield').value);
+      const Fu = document.getElementById('sForceU').value;
+      const Au = document.getElementById('sAreaU').value;
+      const Yu = document.getElementById('sYieldU').value;
+      if ([F,A,Fy].some(isNaN)) { out('sOut', 'Enter Force, Area, and Yield'); return; }
+      const s = stressMPa(F, Fu, A, Au);
+      const n = safetyFactor(Fy, Yu, s);
+      out('sOut', `Stress ≈ ${fmt(s)} MPa, Safety Factor n ≈ ${fmt(n)} (Yield ${ fmt(Yu==='MPa'?Fy: Fy*0.00689475729) } MPa)`);
+      document.getElementById('w2').classList.add('on');
+    }
+
+    // Drill & Tap helpers (pure)
+    function estimateMetricTapDrill(major_mm, pitch_mm){ return major_mm - pitch_mm; }
+    function estimateImperialTapDrill(dia_in, tpi){ return dia_in - (1/tpi); }
+
+    const metricTaps = {
+      'M3x0.5': { major:3.0, pitch:0.5, drill:2.5 },
+      'M4x0.7': { major:4.0, pitch:0.7, drill:3.3 },
+      'M5x0.8': { major:5.0, pitch:0.8, drill:4.2 },
+      'M6x1.0': { major:6.0, pitch:1.0, drill:5.0 },
+      'M8x1.25': { major:8.0, pitch:1.25, drill:6.8 },
+      'M10x1.5': { major:10.0, pitch:1.5, drill:8.5 },
+      'M12x1.75': { major:12.0, pitch:1.75, drill:10.2 }
+    };
+    const uncTaps = {
+      '1/4-20 UNC': { major:0.25, tpi:20, drillInch:0.201 },
+      '5/16-18 UNC': { major:0.3125, tpi:18, drillInch:0.257 },
+      '3/8-16 UNC': { major:0.375, tpi:16, drillInch:0.313 },
+      '1/2-13 UNC': { major:0.5, tpi:13, drillInch:0.421 }
+    };
+    const unfTaps = {
+      '1/4-28 UNF': { major:0.25, tpi:28, drillInch:0.213 },
+      '5/16-24 UNF': { major:0.3125, tpi:24, drillInch:0.272 },
+      '3/8-24 UNF': { major:0.375, tpi:24, drillInch:0.344 },
+      '1/2-20 UNF': { major:0.5, tpi:20, drillInch:0.467 }
+    };
+
+    function loadDrillTapChoices(){
+      const std = document.getElementById('dtStd').value;
+      const sel = document.getElementById('dtSize');
+      sel.innerHTML = '';
+      const map = std==='metric'? metricTaps : (std==='unc'? uncTaps : unfTaps);
+      Object.keys(map).forEach(k=> sel.insertAdjacentHTML('beforeend', `<option>${k}</option>`));
+      const first = map[Object.keys(map)[0]];
+      if (std==='metric'){ document.getElementById('dtMajor').value = first.major; document.getElementById('dtPitch').value = first.pitch; }
+      else { document.getElementById('dtMajor').value = first.major; document.getElementById('dtPitch').value = first.tpi; }
+      document.getElementById('dtOut').textContent='';
+    }
+
+    function calcDrillTap(){
+      const std = document.getElementById('dtStd').value;
+      const choice = document.getElementById('dtSize').value;
+      const major = parseFloat(document.getElementById('dtMajor').value);
+      const pitchOrTPI = parseFloat(document.getElementById('dtPitch').value);
+      if (isNaN(major) || isNaN(pitchOrTPI)) { out('dtOut','Enter major & pitch/TPI'); return; }
+
+      if (std==='metric'){
+        const est = estimateMetricTapDrill(major, pitchOrTPI);
+        const look = metricTaps[choice];
+        const line = look? `Lookup drill: ${fmt(look.drill) } mm` : 'No table value';
+        out('dtOut', `${choice || 'Custom'} — Major ${fmt(major)} mm, Pitch ${fmt(pitchOrTPI)} mm → Tap drill ≈ ${fmt(est)} mm. ${line}`);
+      } else {
+        const est_in = estimateImperialTapDrill(major, pitchOrTPI);
+        const map = std==='unc'? uncTaps : unfTaps; const look = map[choice];
+        const line = look? `Lookup drill: ${fmt(look.drillInch)} in` : 'No table value';
+        out('dtOut', `${choice || 'Custom'} — Major ${fmt(major)} in, ${fmt(pitchOrTPI)} TPI → Tap drill ≈ ${fmt(est_in)} in. ${line}`);
+      }
+      document.getElementById('w3').classList.add('on');
+    }
+
+    function copyDT(){ const s = document.getElementById('dtOut').textContent.trim(); navigator.clipboard.writeText(s).then(()=>{ document.getElementById('dtOut').textContent = s + '  — copied ✓'; }); }
+
+    // Thread helper (pure)
+    function computeThreadMetrics(d_mm, pitch_mm, starts){
+      const tpi = 25.4 / pitch_mm;
+      const lead = starts * pitch_mm;
+      const helix = Math.atan(lead / (Math.PI * d_mm)) * 180/Math.PI;
+      return { tpi, lead, helix };
+    }
+
+    function calcThread(){
+      const d = parseFloat(document.getElementById('thDia').value);
+      const p = parseFloat(document.getElementById('thPitch').value);
+      const z = parseInt(document.getElementById('thStarts').value||'1',10);
+      if ([d,p,z].some(x=>isNaN(x)||x<=0)) { out('thOut','Enter diameter, pitch and starts (>0)'); return; }
+      const {tpi,lead,helix} = computeThreadMetrics(d,p,z);
+      out('thOut', `TPI ≈ ${fmt(tpi)}, Lead ≈ ${fmt(lead)} mm, Helix ≈ ${fmt(helix)}°`);
+      document.getElementById('w3').classList.add('on');
+    }
+    function copyThread(){ const s = document.getElementById('thOut').textContent.trim(); navigator.clipboard.writeText(s); }
+
+    // Seed drill & tap list
+    loadDrillTapChoices();
+
+    // ================== Test Harness ==================
+    function approxEqual(a,b,eps=1e-6){ return Math.abs(a-b) <= eps; }
+    function assertAlmost(name, actual, expected, eps=1e-6){
+      const pass = approxEqual(actual, expected, eps);
+      report(name, pass, actual, expected, eps);
+      return pass;
+    }
+    function assert(name, condition, detail=''){ report(name, !!condition, condition, detail); return !!condition; }
+    function report(name, pass, actual, expected, eps){
+      const li = document.createElement('li');
+      li.innerHTML = pass ? `<span class="pass">✓</span> ${name}` : `<span class="fail">✗</span> ${name} <span class="muted">(got ${formatVal(actual)}, expected ${formatVal(expected)}${eps?`, ±${eps}`:''})</span>`;
+      document.getElementById('testList').appendChild(li);
+      _summary.total++; if(pass) _summary.passed++; else _summary.failed++;
+      updateSummary();
+    }
+    function formatVal(v){ return (typeof v==='number') ? Number(v).toPrecision(8) : JSON.stringify(v); }
+    function updateSummary(){
+      const s = document.getElementById('testSummary');
+      s.innerHTML = `Tests: ${_summary.total}, <span class="pass">Passed: ${_summary.passed}</span>, <span class="fail">Failed: ${_summary.failed}</span>`;
+    }
+    let _summary = { total:0, passed:0, failed:0 };
+    function clearTests(){ document.getElementById('testList').innerHTML=''; _summary={total:0,passed:0,failed:0}; updateSummary(); }
+
+    function runTests(){
+      clearTests();
+      // Temperature
+      assertAlmost('Temp: 0°C -> 32°F', convertTemperature(0,'°C','°F'), 32, 1e-9);
+      assertAlmost('Temp: 100°C -> 373.15 K', convertTemperature(100,'°C','K'), 373.15, 1e-9);
+      assertAlmost('Temp: 68°F -> 20°C', convertTemperature(68,'°F','°C'), 20, 1e-9);
+      // Extra temperature edge cases
+      assertAlmost('Temp: -40°C -> -40°F', convertTemperature(-40,'°C','°F'), -40, 1e-9);
+      assertAlmost('Temp: 0 K -> -273.15°C', convertTemperature(0,'K','°C'), -273.15, 1e-6);
+
+      // Pressure via genericConvert
+      assertAlmost('Pressure: 1 MPa -> 10 bar', genericConvert(1,'MPa','bar',pressureMap), 10, 1e-12);
+      assertAlmost('Pressure: 101.325 kPa -> 14.6959 psi', genericConvert(101.325,'kPa','psi',pressureMap), 14.6959, 1e-4);
+      // Extra pressure
+      assertAlmost('Pressure: 1 bar -> 100 kPa', genericConvert(1,'bar','kPa',pressureMap), 100, 1e-9);
+
+      // Torque
+      assertAlmost('Torque: 10 N·m -> 7.375621 lb·ft', genericConvert(10,'N·m','lb·ft',torqueMap), 7.37562149, 1e-6);
+      // Extra torque
+      assertAlmost('Torque: 1 lb·ft -> 1.355818 N·m', genericConvert(1,'lb·ft','N·m',torqueMap), 1/0.737562149, 1e-6);
+
+      // Power
+      assertAlmost('Power: 1 kW -> 1.341022 hp', genericConvert(1,'kW','hp',powerMap), 1.341022, 1e-6);
+      // Extra power
+      assertAlmost('Power: 10 hp -> ~7.457 kW', genericConvert(10,'hp','kW',powerMap), (10/0.001341022)*1e-3, 1e-6);
+
+      // Energy
+      assertAlmost('Energy: 1 kWh -> 3.6e6 J', genericConvert(1,'kWh','J',energyMap), 3600000, 1e-6);
+      assertAlmost('Energy: 500 Wh -> 0.5 kWh', genericConvert(500,'Wh','kWh',energyMap), 0.5, 1e-12);
+      // Extra energy
+      assertAlmost('Energy: 1 cal -> 4.184 J', genericConvert(1,'cal','J',energyMap), 1/0.239005736, 1e-6);
+
+      // Stress helpers
+      const s1 = stressMPa(15000,'N',250,'mm²');
+      assertAlmost('Stress: 15000 N / 250 mm² -> 60 MPa', s1, 60, 1e-9);
+      const n1 = safetyFactor(250,'MPa', s1);
+      assertAlmost('Safety Factor: yield 250 MPa / 60 MPa -> 4.1667', n1, 250/60, 1e-6);
+      const s2 = stressMPa(3372,'lbf',1,'in²'); // 3372 lbf ≈ 15000 N; 1 in² = 645.16 mm² => 15000/645.16 ≈ 23.26 MPa
+      assertAlmost('Stress: 3372 lbf over 1 in² -> ~23.26 MPa', s2, 15000/645.16, 1e-2);
+
+      // Drill & Tap
+      assertAlmost('Metric tap drill estimate: M6x1.0 ≈ 5.0 mm', estimateMetricTapDrill(6.0,1.0), 5.0, 1e-9);
+      assertAlmost('Imperial tap drill estimate: 1/4-20 ≈ 0.200 in', estimateImperialTapDrill(0.25,20), 0.20, 1e-3);
+      // Extra drill & tap
+      assertAlmost('Imperial tap drill estimate: 1/2-20 ≈ 0.450 in', estimateImperialTapDrill(0.5,20), 0.45, 1e-3);
+
+      // Thread metrics
+      const th = computeThreadMetrics(10,1.5,1); // d=10mm, p=1.5, 1 start
+      assertAlmost('Thread: pitch->TPI 25.4/1.5', th.tpi, 25.4/1.5, 1e-9);
+      assertAlmost('Thread: lead = 1.5 mm', th.lead, 1.5, 1e-12);
+      assert('Thread: helix angle in range', th.helix>0 && th.helix<90);
+      // Extra thread: multi-start
+      const th2 = computeThreadMetrics(20,2,2); // 2-start, lead=4
+      assertAlmost('Thread: multi-start lead = 4.0 mm', th2.lead, 4.0, 1e-12);
+
+      // Quick converter sets (length/weight/volume/speed)
+      const L = unitSets.length; // metres base
+      assertAlmost('Length: 1 km -> 1000 m', (1 / L.kilometres) * L.metres, 1000, 1e-9);
+      const milesToKm = (1 / L.miles) * L.kilometres; // 1 mile in km
+      assertAlmost('Length: 1 mile -> 1.60934 km', milesToKm, 1.60934, 1e-5);
+
+      const W = unitSets.weight; // grams base
+      const kgToLb = (1 / W.kilograms) * W.pounds; // 1 kg in lb
+      assertAlmost('Weight: 1 kg -> 2.20462 lb', kgToLb, 2.20462, 1e-5);
+
+      const V = unitSets.volume; // litres base
+      const galToL = (1 / V.gallons) * V.litres; // 1 gal in L
+      assertAlmost('Volume: 1 gallon -> 3.78541 L', galToL, 3.78541, 1e-5);
+
+      const S = unitSets.speed; // m/s base
+      assertAlmost('Speed: 1 m/s -> 3.6 km/h', (1 / S['m/s']) * S['km/h'], 3.6, 1e-9);
+      const mphToKmh60 = (60 / S['mph']) * S['km/h'];
+      assertAlmost('Speed: 60 mph -> 96.56064 km/h', mphToKmh60, 96.56064, 1e-4);
+    }
+
+    // init quick converter after defining functions (so updateUnits is available)
+    updateUnits();
+
+    function toggleTests(){
+      const card = document.getElementById('testCard');
+      const hidden = getComputedStyle(card).display === 'none';
+      card.style.display = hidden ? '' : 'none';
+      if(hidden){ card.scrollIntoView({behavior:'smooth', block:'start'}); }
+    }
+
+    // === Versioning & About modal ===
+    const BASE_VERSION = '1.0.0';
+    (function setBuildMeta(){
+      const now = new Date();
+      const pad = n => String(n).padStart(2,'0');
+      const buildId = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}`; // YYYYMMDDHHmm
+      const version = `${BASE_VERSION}+${buildId}`;
+      const updated = now.toLocaleDateString('en-AU', { day:'2-digit', month:'short', year:'numeric' });
+      const year = now.getFullYear();
+      const vEl = document.getElementById('pillVersion'); if(vEl) vEl.textContent = `Version ${version}`;
+      const uEl = document.getElementById('pillUpdated'); if(uEl) uEl.textContent = `Last updated: ${updated}`;
+      const cEl = document.getElementById('pillCopyright'); if(cEl) cEl.textContent = `© ${year}`;
+    })();
+
+    // === About modal ===
+    function toggleAbout(show){
+      const bd = document.getElementById('aboutBackdrop');
+      const vis = show ?? (bd.style.display === 'none' || bd.style.display === '');
+      bd.style.display = vis ? 'flex' : 'none';
+      if(vis){ document.getElementById('aboutClose').focus(); }
+    }
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') toggleAbout(false); });
+  </script>
+
+  <!-- Floating buttons -->
+  <button class="about-fab" title="About Magic Units Pro" aria-haspopup="dialog" aria-controls="aboutBackdrop" onclick="toggleAbout(true)">A</button>
+  <button class="egg-fab" title="Show Unit Tests" aria-controls="testCard" aria-label="Show Unit Tests" onclick="toggleTests()">🥚</button>
+
+  <!-- About Modal -->
+  <div id="aboutBackdrop" class="backdrop" role="dialog" aria-modal="true" aria-labelledby="aboutTitle" style="display:none;">
+    <div class="modal">
+      <header>
+        <h3 id="aboutTitle">About Magic Units Pro</h3>
+        <button id="aboutClose" class="close-btn" onclick="toggleAbout(false)" aria-label="Close">Close</button>
+      </header>
+      <div class="content">
+        <p><strong>Magic Units Pro</strong></p>
+        <p>Created by <strong>Ian Fraser</strong></p>
+        <p>Email: <a href="mailto:gooptroop.ian@gmail.com">gooptroop.ian@gmail.com</a></p>
+        <p>
+          <span class="pill" id="pillVersion">Version –</span>
+          <span class="pill" id="pillUpdated">Last updated: –</span>
+          <span class="pill" id="pillCopyright">© –</span>
+        </p>
+        <p class="muted">All conversions are provided in good faith. Verify critical calculations against standards and manufacturer data. Currency rates are fetched live from Frankfurter.app and may differ from your bank’s rates.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
