@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Magic Units Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080d16;
+      --surface: #0d1525;
+      --surface-2: #111e33;
+      --border: rgba(255,255,255,.07);
+      --border-hover: rgba(255,255,255,.14);
+      --accent: #00d4b8;
+      --accent-2: #3d7eff;
+      --accent-warm: #ff8c42;
+      --text: #e2eaff;
+      --text-2: #8a9bbf;
+      --text-3: #4d5d7a;
+      --ok: #34d87c;
+      --danger: #ff5757;
+      --radius: 14px;
+      --radius-sm: 9px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; scroll-behavior: smooth; }
+
+    body {
+      min-height: 100%;
+      font-family: 'DM Sans', system-ui, sans-serif;
+      font-size: 15px;
+      background: var(--bg);
+      color: var(--text);
+      background-image:
+        radial-gradient(ellipse 900px 600px at 0% 0%, rgba(0,212,184,.07), transparent),
+        radial-gradient(ellipse 900px 600px at 100% 100%, rgba(61,126,255,.06), transparent);
+    }
+
+    /* ─── Noise texture overlay ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      opacity: .018;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── Header ─── */
+    header {
+      padding: 2.5rem 1.5rem 1rem;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    header .eyebrow {
+      font-family: 'DM Mono', monospace;
+      font-size: .7rem;
+      letter-spacing: .2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: .6rem;
+    }
+    header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -.03em;
+      background: linear-gradient(120deg, #e2eaff 30%, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.1;
+    }
+    header p {
+      color: var(--text-2);
+      margin-top: .6rem;
+      font-size: .9rem;
+    }
+
+    /* ─── Layout ─── */
+    .wrap { max-width: 1260px; margin: 0 auto; padding: 1rem 1.25rem 5rem; position: relative; z-index: 1; }
+    .grid { display: grid; gap: 1.25rem; grid-template-columns: 1fr; }
+    @media (min-width: 1020px) { .grid { grid-template-columns: 380px 1fr; } }
+
+    /* ─── Cards ─── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      transition: border-color .2s;
+    }
+    .card:focus-within { border-color: var(--border-hover); }
+    .card-head {
+      padding: .85rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+    .card-head .icon { font-size: 1rem; opacity: .7; }
+    .card-head h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: .85rem;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--text-2);
+    }
+    .card-body { padding: 1.25rem; }
+
+    /* ─── Form controls ─── */
+    label { font-size: .8rem; color: var(--text-2); display: block; margin-bottom: .35rem; font-weight: 500; letter-spacing: .01em; }
+    input, select {
+      width: 100%;
+      padding: .7rem .85rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font: inherit;
+      font-size: .9rem;
+      outline: none;
+      transition: border-color .18s, box-shadow .18s;
+      -webkit-appearance: none;
+    }
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+    input::placeholder { color: var(--text-3); }
+
+    .field { margin-bottom: .9rem; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+    .row-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: .75rem; }
+    @media (max-width: 500px) { .row-3 { grid-template-columns: 1fr; } }
+
+    /* ─── Buttons ─── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      width: 100%;
+      padding: .78rem 1rem;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      font: 600 .88rem 'DM Sans', sans-serif;
+      letter-spacing: .01em;
+      transition: opacity .15s, transform .12s, box-shadow .18s;
+      position: relative;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-primary {
+      background: linear-gradient(110deg, var(--accent), var(--accent-2));
+      color: #0a0f1a;
+    }
+    .btn-primary:hover { box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 35%, transparent); }
+    .btn-ghost {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+    }
+    .btn-ghost:hover { border-color: var(--border-hover); color: var(--text); }
+    .btn-icon {
+      width: 38px;
+      height: 38px;
+      flex-shrink: 0;
+      padding: 0;
+      border-radius: var(--radius-sm);
+    }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+    /* ─── Quick Converter ─── */
+    .converter-value-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: .5rem;
+      align-items: end;
+      margin-bottom: .75rem;
+    }
+    .unit-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: .5rem;
+      align-items: end;
+      margin-bottom: .85rem;
+    }
+    .swap-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      border-radius: var(--radius-sm);
+      width: 38px;
+      height: 38px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      transition: border-color .18s, color .18s, transform .18s;
+      margin-bottom: 0;
+      flex-shrink: 0;
+    }
+    .swap-btn:hover { border-color: var(--accent); color: var(--accent); transform: rotate(180deg); }
+    .swap-label { font-size: .7rem; color: transparent; display: block; margin-bottom: .35rem; }
+
+    /* ─── Result box ─── */
+    .result-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: .95rem 1rem;
+      font-family: 'DM Mono', monospace;
+      font-size: .92rem;
+      color: var(--text-2);
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+      transition: border-color .2s;
+    }
+    .result-box.has-value { border-color: color-mix(in srgb, var(--accent) 35%, transparent); color: var(--text); }
+    .result-box .result-text { flex: 1; }
+    .result-value {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.3rem;
+      color: var(--accent);
+      letter-spacing: -.02em;
+    }
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-3);
+      cursor: pointer;
+      padding: .3rem .5rem;
+      font-size: .75rem;
+      transition: all .18s;
+      flex-shrink: 0;
+    }
+    .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .copy-btn.copied { color: var(--ok); border-color: var(--ok); }
+
+    .note-text {
+      font-size: .78rem;
+      color: var(--text-3);
+      margin-top: .6rem;
+      padding-left: .85rem;
+      border-left: 2px solid var(--border);
+      line-height: 1.5;
+    }
+    .note-text.live { border-left-color: var(--accent); color: var(--text-2); }
+
+    /* ─── Engineering Wizard ─── */
+    .wiz-progress { display: flex; gap: 4px; margin-bottom: 1rem; }
+    .wiz-step {
+      height: 5px;
+      flex: 1;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      transition: background .3s, border-color .3s;
+    }
+    .wiz-step.on { background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-color: transparent; }
+
+    .wiz-tabs { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
+    .wiz-tab {
+      flex: 1 0 auto;
+      padding: .5rem .75rem;
+      font: 500 .8rem 'DM Sans', sans-serif;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: all .18s;
+      white-space: nowrap;
+    }
+    .wiz-tab:hover { border-color: var(--border-hover); color: var(--text); }
+    .wiz-tab.active {
+      background: linear-gradient(110deg, color-mix(in srgb, var(--accent) 15%, transparent), color-mix(in srgb, var(--accent-2) 12%, transparent));
+      border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+      color: var(--accent);
+    }
+
+    .section { display: none; animation: fadeIn .2s ease; }
+    .section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    .section p.desc { font-size: .82rem; color: var(--text-2); margin-bottom: 1rem; line-height: 1.55; }
+
+    .inline-select {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: .4rem;
+    }
+    .inline-select select { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; border-left: none; flex-shrink: 0; width: auto; min-width: 80px; }
+    .inline-select input { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+
+    /* ─── Wizard result box ─── */
+    .wiz-result {
+      margin-top: .75rem;
+      padding: .85rem 1rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'DM Mono', monospace;
+      font-size: .85rem;
+      color: var(--text-2);
+      min-height: 46px;
+    }
+    .wiz-result.has-value { border-color: color-mix(in srgb, var(--accent-2) 30%, transparent); color: var(--text); }
+
+    /* ─── Test runner ─── */
+    #testCard { grid-column: 1 / -1; display: none; }
+    .test-summary {
+      padding: .85rem 1rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'DM Mono', monospace;
+      font-size: .82rem;
+      margin-bottom: .75rem;
+    }
+    .test-list {
+      padding-left: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: .3rem;
+    }
+    .test-list li { font-size: .82rem; font-family: 'DM Mono', monospace; color: var(--text-2); }
+    .pass { color: var(--ok); }
+    .fail { color: var(--danger); }
+
+    /* ─── Reference card ─── */
+    #refCard { grid-column: 1 / -1; }
+    details { margin-bottom: .5rem; }
+    details summary {
+      cursor: pointer;
+      font-size: .88rem;
+      color: var(--text-2);
+      padding: .6rem 0;
+      border-bottom: 1px solid var(--border);
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    details summary::after { content: '›'; font-size: 1.1rem; opacity: .5; transition: transform .2s; }
+    details[open] summary::after { transform: rotate(90deg); }
+    details ul { padding: .6rem 0 .5rem 1rem; }
+    details ul li { font-size: .82rem; color: var(--text-2); padding: .18rem 0; line-height: 1.4; }
+    details ul li b { color: var(--text); }
+
+    /* ─── FABs ─── */
+    .fab-group { position: fixed; right: 16px; bottom: 16px; display: flex; gap: 8px; z-index: 100; }
+    .fab {
+      width: 44px; height: 44px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.1);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .8rem;
+      font-weight: 700;
+      transition: transform .18s, border-color .18s, box-shadow .18s;
+      box-shadow: 0 4px 20px rgba(0,0,0,.4);
+    }
+    .fab:hover { transform: translateY(-2px); }
+    .fab-egg { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #0a0f1a; }
+    .fab-about { background: var(--surface-2); color: var(--text-2); font-family: 'Syne', sans-serif; }
+    .fab-about:hover { border-color: rgba(255,255,255,.2); color: var(--text); }
+
+    /* ─── Modal ─── */
+    .backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.6);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center; justify-content: center;
+      padding: 16px;
+      z-index: 1000;
+    }
+    .modal {
+      width: min(520px, 94vw);
+      background: linear-gradient(180deg, #111e33, #0d1525);
+      border: 1px solid var(--border-hover);
+      border-radius: 20px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.6);
+      overflow: hidden;
+    }
+    .modal-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-head h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; }
+    .modal-body { padding: 1.25rem; }
+    .modal-body p { color: var(--text-2); font-size: .88rem; margin-bottom: .6rem; line-height: 1.55; }
+    .modal-body strong { color: var(--text); }
+    .modal-body a { color: var(--accent); text-decoration: none; }
+    .pill {
+      display: inline-block;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: .28rem .65rem;
+      font-size: .75rem;
+      font-family: 'DM Mono', monospace;
+      color: var(--text-2);
+      margin: .2rem .2rem .2rem 0;
+    }
+    .modal-close {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-2);
+      padding: .4rem .7rem;
+      cursor: pointer;
+      font-size: .82rem;
+      transition: all .18s;
+    }
+    .modal-close:hover { border-color: var(--border-hover); color: var(--text); }
+
+    /* ─── Keyboard hint ─── */
+    kbd {
+      display: inline-block;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: .05rem .35rem;
+      font-family: 'DM Mono', monospace;
+      font-size: .72rem;
+      color: var(--text-3);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Engineer-grade conversions</div>
+  <h1>Magic Units Pro</h1>
+  <p>Live currency · Drill & Tap · Material Stress · Thread Pitch · and more.</p>
+</header>
+
+<div class="wrap">
+<div class="grid">
+
+  <!-- ─── LEFT: Quick Converter ─── -->
+  <div class="card">
+    <div class="card-head">
+      <span class="icon">⚡</span>
+      <h2>Quick Converter</h2>
+    </div>
+    <div class="card-body">
+
+      <div class="field">
+        <label for="category">Category</label>
+        <select id="category" onchange="updateUnits()">
+          <optgroup label="General">
+            <option value="length">Length</option>
+            <option value="weight">Weight / Mass</option>
+            <option value="volume">Volume</option>
+            <option value="area">Area</option>
+            <option value="speed">Speed</option>
+            <option value="temperature">Temperature</option>
+          </optgroup>
+          <optgroup label="Digital">
+            <option value="data">Data Storage</option>
+          </optgroup>
+          <optgroup label="Automotive / Other">
+            <option value="fuel">Fuel Economy</option>
+            <option value="angle">Angle</option>
+          </optgroup>
+          <optgroup label="Finance">
+            <option value="currency">Currency (Live)</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="converter-value-row">
+        <div>
+          <label for="value">Value</label>
+          <input id="value" type="number" placeholder="Enter value…" oninput="autoConvert()" onkeydown="if(event.key==='Enter') convert()" />
+        </div>
+        <button class="btn btn-primary btn-icon" onclick="convert()" title="Convert (Enter)" style="margin-bottom:0; align-self:flex-end;">→</button>
+        <button class="btn btn-ghost btn-icon" onclick="clearAll()" title="Clear" style="margin-bottom:0; align-self:flex-end;">✕</button>
+      </div>
+
+      <div class="unit-row">
+        <div>
+          <label for="from">From</label>
+          <select id="from" onchange="autoConvert()"></select>
+        </div>
+        <button class="swap-btn" onclick="swapUnits()" title="Swap units" aria-label="Swap units">
+          <span>⇄</span>
+        </button>
+        <div>
+          <label for="to">To</label>
+          <select id="to" onchange="autoConvert()"></select>
+        </div>
+      </div>
+
+      <div class="result-box" id="quickResult" role="status" aria-live="polite">
+        <span class="result-text">Enter a value above <kbd>Enter</kbd></span>
+        <button class="copy-btn" id="quickCopyBtn" onclick="copyResult()" style="display:none">Copy</button>
+      </div>
+
+      <p class="note-text" id="fxNote">Currency rates fetched live from Frankfurter.app when category is selected.</p>
+    </div>
+  </div>
+
+  <!-- ─── RIGHT: Engineering Wizard ─── -->
+  <div class="card">
+    <div class="card-head">
+      <span class="icon">🔧</span>
+      <h2>Engineering Wizard</h2>
+    </div>
+    <div class="card-body">
+      <div class="wiz-progress">
+        <div class="wiz-step on" id="w1"></div>
+        <div class="wiz-step" id="w2"></div>
+        <div class="wiz-step" id="w3"></div>
+      </div>
+
+      <div class="wiz-tabs" role="tablist">
+        <button class="wiz-tab active" data-tab="pressure" onclick="wizTab(this)">Pressure</button>
+        <button class="wiz-tab" data-tab="torque" onclick="wizTab(this)">Torque</button>
+        <button class="wiz-tab" data-tab="power" onclick="wizTab(this)">Power</button>
+        <button class="wiz-tab" data-tab="energy" onclick="wizTab(this)">Energy</button>
+        <button class="wiz-tab" data-tab="stress" onclick="wizTab(this)">Stress</button>
+        <button class="wiz-tab" data-tab="drill" onclick="wizTab(this)">Drill & Tap</button>
+        <button class="wiz-tab" data-tab="thread" onclick="wizTab(this)">Thread</button>
+      </div>
+
+      <!-- Pressure -->
+      <section id="tab-pressure" class="section active">
+        <div class="row" style="margin-bottom:.75rem">
+          <div><label for="pVal">Value</label><input type="number" id="pVal" placeholder="e.g. 250" oninput="calcPressure()" /></div>
+          <div><label for="pFrom">From</label><select id="pFrom" onchange="calcPressure()"></select></div>
+        </div>
+        <div class="field"><label for="pTo">To</label><select id="pTo" onchange="calcPressure()"></select></div>
+        <div id="pOut" class="wiz-result">Enter a value to convert.</div>
+      </section>
+
+      <!-- Torque -->
+      <section id="tab-torque" class="section">
+        <div class="row" style="margin-bottom:.75rem">
+          <div><label for="tVal">Value</label><input type="number" id="tVal" placeholder="e.g. 120" oninput="calcTorque()" /></div>
+          <div><label for="tFrom">From</label><select id="tFrom" onchange="calcTorque()"></select></div>
+        </div>
+        <div class="field"><label for="tTo">To</label><select id="tTo" onchange="calcTorque()"></select></div>
+        <div id="tOut" class="wiz-result">Enter a value to convert.</div>
+      </section>
+
+      <!-- Power -->
+      <section id="tab-power" class="section">
+        <div class="row" style="margin-bottom:.75rem">
+          <div><label for="pwVal">Value</label><input type="number" id="pwVal" placeholder="e.g. 2.2" oninput="calcPower()" /></div>
+          <div><label for="pwFrom">From</label><select id="pwFrom" onchange="calcPower()"></select></div>
+        </div>
+        <div class="field"><label for="pwTo">To</label><select id="pwTo" onchange="calcPower()"></select></div>
+        <div id="pwOut" class="wiz-result">Enter a value to convert.</div>
+      </section>
+
+      <!-- Energy -->
+      <section id="tab-energy" class="section">
+        <div class="row" style="margin-bottom:.75rem">
+          <div><label for="eVal">Value</label><input type="number" id="eVal" placeholder="e.g. 500" oninput="calcEnergy()" /></div>
+          <div><label for="eFrom">From</label><select id="eFrom" onchange="calcEnergy()"></select></div>
+        </div>
+        <div class="field"><label for="eTo">To</label><select id="eTo" onchange="calcEnergy()"></select></div>
+        <div id="eOut" class="wiz-result">Enter a value to convert.</div>
+      </section>
+
+      <!-- Stress -->
+      <section id="tab-stress" class="section">
+        <p class="desc">Calculates applied stress and estimates safety factor (n = Yield ÷ Applied). Mix unit systems freely.</p>
+        <div class="row-3">
+          <div>
+            <label>Force</label>
+            <div class="inline-select">
+              <input type="number" id="sForce" placeholder="e.g. 15000" oninput="calcStress()" />
+              <select id="sForceU" onchange="calcStress()"><option>N</option><option>lbf</option><option>kN</option></select>
+            </div>
+          </div>
+          <div>
+            <label>Area</label>
+            <div class="inline-select">
+              <input type="number" id="sArea" placeholder="e.g. 250" oninput="calcStress()" />
+              <select id="sAreaU" onchange="calcStress()"><option>mm²</option><option>in²</option><option>cm²</option></select>
+            </div>
+          </div>
+          <div>
+            <label>Yield Strength</label>
+            <div class="inline-select">
+              <input type="number" id="sYield" placeholder="e.g. 250" oninput="calcStress()" />
+              <select id="sYieldU" onchange="calcStress()"><option>MPa</option><option>psi</option></select>
+            </div>
+          </div>
+        </div>
+        <div id="sOut" class="wiz-result" style="margin-top:.75rem">Enter force, area and yield strength.</div>
+      </section>
+
+      <!-- Drill & Tap -->
+      <section id="tab-drill" class="section">
+        <p class="desc">Metric ≈ Major − Pitch. Imperial ≈ Major − (1 ÷ TPI). Select a preset or enter custom values.</p>
+        <div class="row" style="margin-bottom:.75rem">
+          <div>
+            <label for="dtStd">Standard</label>
+            <select id="dtStd" onchange="loadDrillTapChoices()">
+              <option value="metric">Metric (ISO)</option>
+              <option value="unc">UNC — Coarse</option>
+              <option value="unf">UNF — Fine</option>
+            </select>
+          </div>
+          <div>
+            <label for="dtSize">Preset Size</label>
+            <select id="dtSize" onchange="loadDrillTapPreset()"></select>
+          </div>
+        </div>
+        <div class="row" style="margin-bottom:.75rem">
+          <div><label for="dtMajor">Major Diameter</label><input id="dtMajor" type="number" step="0.01" placeholder="mm or inch" oninput="calcDrillTap()" /></div>
+          <div><label for="dtPitch">Pitch / TPI</label><input id="dtPitch" type="number" step="0.01" placeholder="mm pitch or TPI" oninput="calcDrillTap()" /></div>
+        </div>
+        <div class="row">
+          <button class="btn btn-ghost" onclick="copyDT()">Copy Result</button>
+        </div>
+        <div id="dtOut" class="wiz-result" style="margin-top:.75rem">Select a preset or enter custom values.</div>
+      </section>
+
+      <!-- Thread -->
+      <section id="tab-thread" class="section">
+        <p class="desc">Computes pitch ↔ TPI, lead for multi-start threads, and helix angle (approx.).</p>
+        <div class="row-3">
+          <div><label for="thDia">Diameter (mm)</label><input id="thDia" type="number" step="0.001" placeholder="e.g. 10" oninput="calcThread()" /></div>
+          <div><label for="thPitch">Pitch (mm)</label><input id="thPitch" type="number" step="0.001" placeholder="e.g. 1.5" oninput="calcThread()" /></div>
+          <div><label for="thStarts">Starts</label><input id="thStarts" type="number" value="1" oninput="calcThread()" /></div>
+        </div>
+        <div style="margin-top:.5rem">
+          <button class="btn btn-ghost" onclick="copyThread()">Copy Result</button>
+        </div>
+        <div id="thOut" class="wiz-result" style="margin-top:.75rem">Enter diameter, pitch and number of starts.</div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ─── Test Runner (hidden) ─── -->
+  <div id="testCard" class="card">
+    <div class="card-head"><span class="icon">🧪</span><h2>Unit Tests</h2></div>
+    <div class="card-body">
+      <p style="font-size:.82rem; color:var(--text-2); margin-bottom:.85rem">Deterministic tests on all conversion helpers. Currency excluded (live API).</p>
+      <div class="row" style="margin-bottom:.85rem">
+        <button class="btn btn-primary" onclick="runTests()">Run Tests</button>
+        <button class="btn btn-ghost" onclick="clearTests()">Clear</button>
+      </div>
+      <div class="test-summary" id="testSummary">No tests run yet.</div>
+      <ol id="testList" class="test-list"></ol>
+    </div>
+  </div>
+
+  <!-- ─── Reference ─── -->
+  <div class="card" id="refCard">
+    <div class="card-head"><span class="icon">📖</span><h2>Reference & Notes</h2></div>
+    <div class="card-body">
+      <details>
+        <summary>Quick Convert — supported units</summary>
+        <ul>
+          <li><b>Length:</b> metres, kilometres, miles, feet, inches, nautical miles, light-years</li>
+          <li><b>Weight / Mass:</b> grams, kilograms, pounds, ounces, tonnes, stone</li>
+          <li><b>Volume:</b> litres, millilitres, US gallons, US fluid oz, cups, tablespoons, teaspoons</li>
+          <li><b>Area:</b> m², km², ft², in², acres, hectares</li>
+          <li><b>Speed:</b> m/s, km/h, mph, knots, ft/s</li>
+          <li><b>Temperature:</b> °C, °F, Kelvin</li>
+          <li><b>Data:</b> bytes, KB, MB, GB, TB, PB (IEC binary)</li>
+          <li><b>Fuel Economy:</b> L/100km, mpg (US), mpg (UK), km/L</li>
+          <li><b>Angle:</b> degrees, radians, gradians, arcminutes, arcseconds</li>
+          <li><b>Currency:</b> Live rates via Frankfurter.app (AUD base)</li>
+        </ul>
+      </details>
+      <details>
+        <summary>Engineering Wizard — coverage</summary>
+        <ul>
+          <li>Pressure: Pa, kPa, MPa, bar, psi, atm</li>
+          <li>Torque: N·m, lb·ft, kg·cm, in·lbf</li>
+          <li>Power: W, kW, MW, hp (mech), BTU/hr</li>
+          <li>Energy: J, kJ, cal, kcal, Wh, kWh, BTU</li>
+          <li>Stress & Safety Factor: mix N/lbf/kN with mm²/in²/cm²; yield in MPa/psi</li>
+          <li>Drill & Tap: ISO metric M3–M12, UNC & UNF presets + custom formula</li>
+          <li>Thread: pitch ↔ TPI, lead, helix angle for any start count</li>
+        </ul>
+      </details>
+      <p style="font-size:.78rem; color:var(--text-3); margin-top:.85rem; line-height:1.5">All calculations run in-browser. Verify critical engineering values against applicable standards and manufacturer data before use.</p>
+    </div>
+  </div>
+
+</div><!-- /.grid -->
+</div><!-- /.wrap -->
+
+<!-- ─── FABs ─── -->
+<div class="fab-group">
+  <button class="fab fab-about" title="About" onclick="toggleAbout(true)">A</button>
+  <button class="fab fab-egg" title="Unit Tests" onclick="toggleTests()">🥚</button>
+</div>
+
+<!-- ─── About Modal ─── -->
+<div id="aboutBackdrop" class="backdrop" role="dialog" aria-modal="true" style="display:none" onclick="if(event.target===this)toggleAbout(false)">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>About Magic Units Pro</h3>
+      <button class="modal-close" onclick="toggleAbout(false)" id="aboutClose">Close</button>
+    </div>
+    <div class="modal-body">
+      <p><strong>Magic Units Pro</strong> — engineer-friendly unit conversions.</p>
+      <p>Created by <strong>Ian Fraser</strong><br>
+        <a href="mailto:gooptroop.ian@gmail.com">gooptroop.ian@gmail.com</a>
+      </p>
+      <div style="margin: .75rem 0">
+        <span class="pill" id="pillVersion">–</span>
+        <span class="pill" id="pillUpdated">–</span>
+        <span class="pill" id="pillCopyright">–</span>
+      </div>
+      <p>Currency rates are fetched live from <a href="https://frankfurter.app" target="_blank" rel="noopener">Frankfurter.app</a> and may differ from bank rates. For critical engineering work, always verify against standards and manufacturer data.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// UTILITIES
+// ============================================================
+const DP = 6; // internal precision
+const fmt = (n, dp = 4) => {
+  const num = Number(n);
+  if (!Number.isFinite(num)) return String(n);
+  // Auto-trim trailing zeros but keep at least dp sig figs
+  const fixed = num.toPrecision(6);
+  const parsed = parseFloat(fixed);
+  // Use toPrecision for large/small, toFixed for everyday numbers
+  if (Math.abs(num) >= 1e6 || (Math.abs(num) < 1e-4 && num !== 0)) {
+    return num.toPrecision(5);
+  }
+  return parseFloat(num.toFixed(dp)).toString();
+};
+
+const setResult = (id, html, hasValue = true) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = html;
+  el.classList.toggle('has-value', hasValue);
+};
+
+// ============================================================
+// QUICK CONVERTER — Unit sets
+// ============================================================
+// Fallback currency rates (AUD base, mid-2025 approximations)
+const CURRENCY_FALLBACK = {
+  AUD:1, USD:0.645, EUR:0.594, GBP:0.507, JPY:97.2, CAD:0.884,
+  CHF:0.573, CNY:4.67, HKD:5.03, NZD:1.088, SGD:0.866, KRW:882,
+  INR:53.8, MXN:12.9, BRL:3.62, ZAR:11.8, SEK:6.65, NOK:6.89,
+  DKK:4.43, THB:22.8, MYR:2.97, IDR:10420, PHP:37.2, VND:16430,
+  AED:2.37, SAR:2.42, TRY:21.3, PLN:2.61, CZK:14.8, HUF:238
+};
+
+const unitSets = {
+  length: {
+    metres: 1, kilometres: 1e-3, miles: 1/1609.344, feet: 1/0.3048,
+    inches: 1/0.0254, 'nautical miles': 1/1852, 'light-years': 1/9.461e15
+  },
+  weight: {
+    grams: 1, kilograms: 1e-3, pounds: 1/453.59237, ounces: 1/28.349523,
+    tonnes: 1e-6, stone: 1/6350.293
+  },
+  volume: {
+    litres: 1, millilitres: 1000, 'US gallons': 1/3.785411784,
+    'US fl oz': 1/0.0295735, cups: 1/0.25, tablespoons: 1/0.015,
+    teaspoons: 1/0.005
+  },
+  area: {
+    'm²': 1, 'km²': 1e-6, 'ft²': 1/0.09290304, 'in²': 1/0.00064516,
+    acres: 1/4046.8564, hectares: 1e-4
+  },
+  speed: {
+    'm/s': 1, 'km/h': 3.6, 'mph': 1/0.44704, 'knots': 1/0.514444,
+    'ft/s': 1/0.3048
+  },
+  temperature: { '°C': 'c', '°F': 'f', 'K': 'k' },
+  data: {
+    bytes: 1, KB: 1/1024, MB: 1/1048576, GB: 1/1073741824,
+    TB: 1/1099511627776, PB: 1/1125899906842624
+  },
+  fuel: {
+    'L/100km': 1, 'mpg (US)': null, 'mpg (UK)': null, 'km/L': null
+  },
+  angle: {
+    degrees: 1, radians: Math.PI/180, gradians: 1/0.9,
+    arcminutes: 60, arcseconds: 3600
+  },
+  // Pre-populated with fallback; refreshed live when category is selected
+  currency: { ...CURRENCY_FALLBACK }
+};
+
+// ─── Fuel economy needs special (reciprocal) handling ───
+function convertFuel(val, from, to) {
+  // Convert everything to L/100km first
+  const toL100 = {
+    'L/100km': v => v,
+    'mpg (US)': v => 235.214583 / v,
+    'mpg (UK)': v => 282.481 / v,
+    'km/L': v => 100 / v
+  };
+  const fromL100 = {
+    'L/100km': v => v,
+    'mpg (US)': v => 235.214583 / v,
+    'mpg (UK)': v => 282.481 / v,
+    'km/L': v => 100 / v
+  };
+  return fromL100[to](toL100[from](val));
+}
+
+let _currencyFetched = false;
+async function ensureCurrency() {
+  const note = document.getElementById('fxNote');
+  if (!_currencyFetched) {
+    note.textContent = 'Showing indicative fallback rates — fetching live rates…';
+    note.className = 'note-text';
+  }
+  try {
+    const res = await fetch('https://api.frankfurter.app/latest?from=AUD');
+    const data = await res.json();
+    Object.assign(unitSets.currency, { AUD: 1, ...data.rates });
+    _currencyFetched = true;
+    note.textContent = `Live rates as of ${data.date} (Frankfurter.app)`;
+    note.className = 'note-text live';
+    if (document.getElementById('category').value === 'currency') updateUnits();
+  } catch {
+    if (!_currencyFetched) {
+      note.textContent = 'Live fetch failed — using indicative fallback rates. May not reflect current market prices.';
+    }
+  }
+}
+
+function updateUnits() {
+  const cat = document.getElementById('category').value;
+  if (cat === 'currency') ensureCurrency();
+  const from = document.getElementById('from');
+  const to = document.getElementById('to');
+  from.innerHTML = ''; to.innerHTML = '';
+
+  const keys = cat === 'temperature'
+    ? Object.keys(unitSets.temperature)
+    : Object.keys(unitSets[cat]);
+
+  keys.forEach(u => {
+    from.insertAdjacentHTML('beforeend', `<option>${u}</option>`);
+    to.insertAdjacentHTML('beforeend', `<option>${u}</option>`);
+  });
+  to.selectedIndex = Math.min(1, keys.length - 1);
+
+  setResult('quickResult', 'Enter a value above', false);
+  document.getElementById('quickResult').innerHTML = `<span class="result-text">Enter a value above <kbd>Enter</kbd></span><button class="copy-btn" id="quickCopyBtn" onclick="copyResult()" style="display:none">Copy</button>`;
+}
+
+function convertTemperature(val, from, to) {
+  let c;
+  if (from === '°C') c = val;
+  else if (from === '°F') c = (val - 32) * 5/9;
+  else c = val - 273.15;
+  if (to === '°C') return c;
+  if (to === '°F') return (c * 9/5) + 32;
+  return c + 273.15;
+}
+
+let _lastConvertResult = '';
+let _autoConvertTimer = null;
+
+function autoConvert() {
+  clearTimeout(_autoConvertTimer);
+  _autoConvertTimer = setTimeout(convert, 350);
+}
+
+async function convert() {
+  const cat = document.getElementById('category').value;
+  const val = parseFloat(document.getElementById('value').value);
+  const from = document.getElementById('from').value;
+  const to = document.getElementById('to').value;
+  const box = document.getElementById('quickResult');
+
+  if (isNaN(val)) {
+    box.innerHTML = `<span class="result-text" style="color:var(--text-3)">Enter a valid number…</span>`;
+    box.classList.remove('has-value');
+    document.getElementById('quickCopyBtn').style.display = 'none';
+    return;
+  }
+
+  let result;
+
+  if (cat === 'currency') {
+    // Convert using local rate map (AUD base): val/fromRate * toRate
+    const r = unitSets.currency;
+    if (!r[from] || !r[to]) {
+      box.innerHTML = `<span class="result-text" style="color:var(--danger)">Unknown currency.</span>`;
+      return;
+    }
+    result = (val / r[from]) * r[to];
+  } else if (cat === 'temperature') {
+    result = convertTemperature(val, from, to);
+  } else if (cat === 'fuel') {
+    if (from === to) { result = val; }
+    else { result = convertFuel(val, from, to); }
+  } else {
+    const r = unitSets[cat];
+    result = (val / r[from]) * r[to];
+  }
+
+  const resultStr = fmt(result);
+  _lastConvertResult = `${fmt(val, 4)} ${from} = ${resultStr} ${to}`;
+
+  box.innerHTML = `
+    <span class="result-text">
+      <span style="color:var(--text-2)">${fmt(val, 4)} ${from} =</span>
+      <span class="result-value"> ${resultStr}</span>
+      <span style="color:var(--text-2)"> ${to}</span>
+    </span>
+    <button class="copy-btn" id="quickCopyBtn" onclick="copyResult()">Copy</button>
+  `;
+  box.classList.add('has-value');
+}
+
+function swapUnits() {
+  const from = document.getElementById('from');
+  const to = document.getElementById('to');
+  const tmp = from.value;
+  from.value = to.value;
+  to.value = tmp;
+  autoConvert();
+}
+
+function clearAll() {
+  document.getElementById('value').value = '';
+  const box = document.getElementById('quickResult');
+  box.innerHTML = `<span class="result-text">Enter a value above <kbd>Enter</kbd></span><button class="copy-btn" id="quickCopyBtn" onclick="copyResult()" style="display:none">Copy</button>`;
+  box.classList.remove('has-value');
+}
+
+function copyResult() {
+  if (!_lastConvertResult) return;
+  navigator.clipboard.writeText(_lastConvertResult).then(() => {
+    const btn = document.getElementById('quickCopyBtn');
+    if (!btn) return;
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+
+// ============================================================
+// ENGINEERING WIZARD
+// ============================================================
+const pressureMap = { Pa:1, kPa:1e3, MPa:1e6, bar:1e5, psi:6894.757, atm:101325 };
+const torqueMap   = { 'N·m':1, 'lb·ft':1.355818, 'kg·cm':0.0980665, 'in·lbf':0.112985 };
+const powerMap    = { W:1, kW:1e3, MW:1e6, 'hp':745.699872, 'BTU/hr':0.29307107 };
+const energyMap   = { J:1, kJ:1e3, cal:4.184, kcal:4184, Wh:3600, kWh:3.6e6, BTU:1055.056 };
+
+// Note: pressureMap, torqueMap, powerMap, energyMap now store values in base units
+// genericConvert: val in `from` units → base → `to` units
+function genericConvert(val, from, to, map) {
+  return (val * map[from]) / map[to];
+}
+
+function fillSelect(sel, map) {
+  sel.innerHTML = '';
+  Object.keys(map).forEach(k => sel.insertAdjacentHTML('beforeend', `<option>${k}</option>`));
+}
+
+fillSelect(document.getElementById('pFrom'), pressureMap);
+fillSelect(document.getElementById('pTo'), pressureMap);
+document.getElementById('pTo').selectedIndex = 1;
+fillSelect(document.getElementById('tFrom'), torqueMap);
+fillSelect(document.getElementById('tTo'), torqueMap);
+document.getElementById('tTo').selectedIndex = 1;
+fillSelect(document.getElementById('pwFrom'), powerMap);
+fillSelect(document.getElementById('pwTo'), powerMap);
+document.getElementById('pwTo').selectedIndex = 1;
+fillSelect(document.getElementById('eFrom'), energyMap);
+fillSelect(document.getElementById('eTo'), energyMap);
+document.getElementById('eTo').selectedIndex = 4; // Wh
+
+function wizTab(el) {
+  document.querySelectorAll('.wiz-tab').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  const id = el.dataset.tab;
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  // Reset progress
+  ['w1','w2','w3'].forEach((w,i) => document.getElementById(w).classList.toggle('on', i===0));
+}
+
+function wizOut(id, msg, val=true) {
+  const el = document.getElementById(id);
+  el.innerHTML = msg;
+  el.classList.toggle('has-value', val);
+}
+function step(n) {
+  for (let i=1; i<=n; i++) document.getElementById('w'+i).classList.add('on');
+}
+
+function calcPressure() {
+  const v = parseFloat(document.getElementById('pVal').value);
+  if (isNaN(v)) return;
+  const f = document.getElementById('pFrom').value, t = document.getElementById('pTo').value;
+  wizOut('pOut', `${fmt(v)} <span style="color:var(--text-2)">${f}</span> = <strong style="color:var(--accent)">${fmt(genericConvert(v,f,t,pressureMap))}</strong> ${t}`);
+  step(2);
+}
+function calcTorque() {
+  const v = parseFloat(document.getElementById('tVal').value);
+  if (isNaN(v)) return;
+  const f = document.getElementById('tFrom').value, t = document.getElementById('tTo').value;
+  wizOut('tOut', `${fmt(v)} <span style="color:var(--text-2)">${f}</span> = <strong style="color:var(--accent)">${fmt(genericConvert(v,f,t,torqueMap))}</strong> ${t}`);
+  step(2);
+}
+function calcPower() {
+  const v = parseFloat(document.getElementById('pwVal').value);
+  if (isNaN(v)) return;
+  const f = document.getElementById('pwFrom').value, t = document.getElementById('pwTo').value;
+  wizOut('pwOut', `${fmt(v)} <span style="color:var(--text-2)">${f}</span> = <strong style="color:var(--accent)">${fmt(genericConvert(v,f,t,powerMap))}</strong> ${t}`);
+  step(2);
+}
+function calcEnergy() {
+  const v = parseFloat(document.getElementById('eVal').value);
+  if (isNaN(v)) return;
+  const f = document.getElementById('eFrom').value, t = document.getElementById('eTo').value;
+  wizOut('eOut', `${fmt(v)} <span style="color:var(--text-2)">${f}</span> = <strong style="color:var(--accent)">${fmt(genericConvert(v,f,t,energyMap))}</strong> ${t}`);
+  step(2);
+}
+
+// ─── Stress helpers ───
+function stressMPa(F, Fu, A, Au) {
+  const F_N = Fu === 'N' ? F : (Fu === 'kN' ? F * 1000 : F * 4.4482216152605);
+  const A_mm2 = Au === 'mm²' ? A : (Au === 'cm²' ? A * 100 : A * 645.16);
+  return F_N / A_mm2;
+}
+function safetyFactor(yieldVal, yieldUnit, stress) {
+  const yMPa = yieldUnit === 'MPa' ? yieldVal : yieldVal * 0.00689475729;
+  return yMPa / stress;
+}
+
+function calcStress() {
+  const F = parseFloat(document.getElementById('sForce').value);
+  const A = parseFloat(document.getElementById('sArea').value);
+  const Fy = parseFloat(document.getElementById('sYield').value);
+  const Fu = document.getElementById('sForceU').value;
+  const Au = document.getElementById('sAreaU').value;
+  const Yu = document.getElementById('sYieldU').value;
+  if ([F,A,Fy].some(isNaN)) return;
+  const s = stressMPa(F, Fu, A, Au);
+  const n = safetyFactor(Fy, Yu, s);
+  const nColor = n >= 2 ? 'var(--ok)' : n >= 1.2 ? 'var(--accent-warm)' : 'var(--danger)';
+  wizOut('sOut',
+    `Stress ≈ <strong style="color:var(--accent)">${fmt(s)} MPa</strong> &nbsp;|&nbsp; Safety factor n ≈ <strong style="color:${nColor}">${fmt(n, 3)}</strong>`,
+    true
+  );
+  step(2);
+}
+
+// ─── Drill & Tap ───
+const metricTaps = {
+  'M3×0.5':  { major:3.0,   pitch:0.5,   drill:2.5 },
+  'M4×0.7':  { major:4.0,   pitch:0.7,   drill:3.3 },
+  'M5×0.8':  { major:5.0,   pitch:0.8,   drill:4.2 },
+  'M6×1.0':  { major:6.0,   pitch:1.0,   drill:5.0 },
+  'M8×1.25': { major:8.0,   pitch:1.25,  drill:6.8 },
+  'M10×1.5': { major:10.0,  pitch:1.5,   drill:8.5 },
+  'M12×1.75':{ major:12.0,  pitch:1.75,  drill:10.2 }
+};
+const uncTaps = {
+  '1/4-20 UNC':  { major:0.25,   tpi:20, drillInch:0.201 },
+  '5/16-18 UNC': { major:0.3125, tpi:18, drillInch:0.257 },
+  '3/8-16 UNC':  { major:0.375,  tpi:16, drillInch:0.313 },
+  '1/2-13 UNC':  { major:0.5,    tpi:13, drillInch:0.421 }
+};
+const unfTaps = {
+  '1/4-28 UNF':  { major:0.25,   tpi:28, drillInch:0.213 },
+  '5/16-24 UNF': { major:0.3125, tpi:24, drillInch:0.272 },
+  '3/8-24 UNF':  { major:0.375,  tpi:24, drillInch:0.344 },
+  '1/2-20 UNF':  { major:0.5,    tpi:20, drillInch:0.467 }
+};
+
+function loadDrillTapChoices() {
+  const std = document.getElementById('dtStd').value;
+  const sel = document.getElementById('dtSize');
+  sel.innerHTML = '';
+  const map = std === 'metric' ? metricTaps : (std === 'unc' ? uncTaps : unfTaps);
+  Object.keys(map).forEach(k => sel.insertAdjacentHTML('beforeend', `<option>${k}</option>`));
+  loadDrillTapPreset();
+}
+
+function loadDrillTapPreset() {
+  const std = document.getElementById('dtStd').value;
+  const choice = document.getElementById('dtSize').value;
+  const map = std === 'metric' ? metricTaps : (std === 'unc' ? uncTaps : unfTaps);
+  const preset = map[choice];
+  if (!preset) return;
+  document.getElementById('dtMajor').value = preset.major;
+  document.getElementById('dtPitch').value = std === 'metric' ? preset.pitch : preset.tpi;
+  calcDrillTap();
+}
+
+function estimateMetricTapDrill(major, pitch) { return major - pitch; }
+function estimateImperialTapDrill(dia, tpi) { return dia - (1 / tpi); }
+
+function calcDrillTap() {
+  const std = document.getElementById('dtStd').value;
+  const choice = document.getElementById('dtSize').value;
+  const major = parseFloat(document.getElementById('dtMajor').value);
+  const pitchOrTPI = parseFloat(document.getElementById('dtPitch').value);
+  if (isNaN(major) || isNaN(pitchOrTPI)) return;
+
+  if (std === 'metric') {
+    const est = estimateMetricTapDrill(major, pitchOrTPI);
+    const look = metricTaps[choice];
+    const lookupLine = look ? ` &nbsp;|&nbsp; Table lookup: <strong style="color:var(--accent)">${fmt(look.drill, 2)} mm</strong>` : '';
+    wizOut('dtOut', `${choice} — tap drill ≈ <strong style="color:var(--accent)">${fmt(est, 2)} mm</strong>${lookupLine}`);
+  } else {
+    const est = estimateImperialTapDrill(major, pitchOrTPI);
+    const map = std === 'unc' ? uncTaps : unfTaps;
+    const look = map[choice];
+    const lookupLine = look ? ` &nbsp;|&nbsp; Table lookup: <strong style="color:var(--accent)">${fmt(look.drillInch, 4)} in</strong>` : '';
+    wizOut('dtOut', `${choice} — tap drill ≈ <strong style="color:var(--accent)">${fmt(est, 4)} in</strong>${lookupLine}`);
+  }
+  step(3);
+}
+
+let _dtLastResult = '';
+function copyDT() {
+  const s = document.getElementById('dtOut').textContent.trim();
+  navigator.clipboard.writeText(s).then(() => {
+    const btn = event.target;
+    btn.textContent = 'Copied ✓';
+    setTimeout(() => btn.textContent = 'Copy Result', 1800);
+  });
+}
+
+// ─── Thread helper ───
+function computeThreadMetrics(d, pitch, starts) {
+  const tpi = 25.4 / pitch;
+  const lead = starts * pitch;
+  const helix = Math.atan(lead / (Math.PI * d)) * 180 / Math.PI;
+  return { tpi, lead, helix };
+}
+
+let _threadLastResult = '';
+function calcThread() {
+  const d = parseFloat(document.getElementById('thDia').value);
+  const p = parseFloat(document.getElementById('thPitch').value);
+  const z = parseInt(document.getElementById('thStarts').value || '1', 10);
+  if ([d,p,z].some(x => isNaN(x) || x <= 0)) return;
+  const { tpi, lead, helix } = computeThreadMetrics(d, p, z);
+  _threadLastResult = `TPI ≈ ${fmt(tpi)}, Lead ≈ ${fmt(lead)} mm, Helix ≈ ${fmt(helix, 3)}°`;
+  wizOut('thOut',
+    `TPI ≈ <strong style="color:var(--accent)">${fmt(tpi)}</strong> &nbsp;|&nbsp; Lead ≈ <strong style="color:var(--accent)">${fmt(lead)} mm</strong> &nbsp;|&nbsp; Helix ≈ <strong style="color:var(--accent)">${fmt(helix, 3)}°</strong>`
+  );
+  step(3);
+}
+
+function copyThread() {
+  if (!_threadLastResult) return;
+  navigator.clipboard.writeText(_threadLastResult).then(() => {
+    const btn = event.target;
+    btn.textContent = 'Copied ✓';
+    setTimeout(() => btn.textContent = 'Copy Result', 1800);
+  });
+}
+
+// seed
+loadDrillTapChoices();
+updateUnits();
+
+// ============================================================
+// TEST HARNESS
+// ============================================================
+let _s = { total:0, passed:0, failed:0 };
+
+function approxEq(a, b, eps=1e-6) { return Math.abs(a-b) <= eps; }
+function assertAlmost(name, actual, expected, eps=1e-6) {
+  const pass = approxEq(actual, expected, eps);
+  _report(name, pass, actual, expected, eps);
+  return pass;
+}
+function assert(name, cond, detail='') {
+  _report(name, !!cond, cond, detail);
+  return !!cond;
+}
+function _report(name, pass, actual, expected, eps) {
+  const li = document.createElement('li');
+  const val = v => (typeof v === 'number') ? Number(v).toPrecision(8) : JSON.stringify(v);
+  li.innerHTML = pass
+    ? `<span class="pass">✓</span> ${name}`
+    : `<span class="fail">✗</span> ${name} <span style="color:var(--text-3)">(got ${val(actual)}, expected ${val(expected)}${eps ? `, ±${eps}` : ''})</span>`;
+  document.getElementById('testList').appendChild(li);
+  _s.total++; if(pass) _s.passed++; else _s.failed++;
+  const sum = document.getElementById('testSummary');
+  sum.innerHTML = `<span style="color:var(--text)">Tests: ${_s.total}</span> &nbsp; <span class="pass">Passed: ${_s.passed}</span> &nbsp; <span class="fail">Failed: ${_s.failed}</span>`;
+}
+
+function clearTests() {
+  document.getElementById('testList').innerHTML = '';
+  _s = { total:0, passed:0, failed:0 };
+  document.getElementById('testSummary').innerHTML = 'No tests run yet.';
+}
+
+function runTests() {
+  clearTests();
+
+  // Temperature
+  assertAlmost('Temp: 0°C → 32°F', convertTemperature(0,'°C','°F'), 32, 1e-9);
+  assertAlmost('Temp: 100°C → 373.15 K', convertTemperature(100,'°C','K'), 373.15, 1e-9);
+  assertAlmost('Temp: 68°F → 20°C', convertTemperature(68,'°F','°C'), 20, 1e-9);
+  assertAlmost('Temp: -40°C → -40°F', convertTemperature(-40,'°C','°F'), -40, 1e-9);
+  assertAlmost('Temp: 0 K → -273.15°C', convertTemperature(0,'K','°C'), -273.15, 1e-6);
+
+  // Pressure (new map: value in base unit Pa)
+  assertAlmost('Pressure: 1 MPa → 10 bar', genericConvert(1,'MPa','bar',pressureMap), 10, 1e-9);
+  assertAlmost('Pressure: 101325 Pa → 1 atm', genericConvert(101325,'Pa','atm',pressureMap), 1, 1e-6);
+  assertAlmost('Pressure: 1 bar → 100 kPa', genericConvert(1,'bar','kPa',pressureMap), 100, 1e-6);
+  assertAlmost('Pressure: 1 psi → ~6894.757 Pa', genericConvert(1,'psi','Pa',pressureMap), 6894.757, 1e-3);
+
+  // Torque
+  assertAlmost('Torque: 10 N·m → 7.37562 lb·ft', genericConvert(10,'N·m','lb·ft',torqueMap), 7.37562149, 1e-4);
+  assertAlmost('Torque: 1 lb·ft → ~1.355818 N·m', genericConvert(1,'lb·ft','N·m',torqueMap), 1.355818, 1e-4);
+
+  // Power
+  assertAlmost('Power: 1 kW → 1.34102 hp', genericConvert(1,'kW','hp',powerMap), 1.34102, 1e-4);
+  assertAlmost('Power: 10 hp → ~7457 W', genericConvert(10,'hp','W',powerMap), 7456.9987, 1e-2);
+
+  // Energy
+  assertAlmost('Energy: 1 kWh → 3.6e6 J', genericConvert(1,'kWh','J',energyMap), 3.6e6, 1e-6);
+  assertAlmost('Energy: 1 kcal → 4184 J', genericConvert(1,'kcal','J',energyMap), 4184, 1e-9);
+  assertAlmost('Energy: 1 BTU → 1055.056 J', genericConvert(1,'BTU','J',energyMap), 1055.056, 1e-3);
+
+  // Stress
+  const s1 = stressMPa(15000,'N',250,'mm²');
+  assertAlmost('Stress: 15000 N / 250 mm² → 60 MPa', s1, 60, 1e-9);
+  assertAlmost('Safety Factor: yield 250 MPa / 60 MPa', safetyFactor(250,'MPa',s1), 250/60, 1e-6);
+  const s2 = stressMPa(1000,'kN',200,'cm²');
+  assertAlmost('Stress: 1000 kN / 200 cm² → 50 MPa', s2, 1000000/20000, 1e-6);
+
+  // Drill & Tap
+  assertAlmost('Metric tap drill: M6×1.0 → 5.0 mm', estimateMetricTapDrill(6.0,1.0), 5.0, 1e-9);
+  assertAlmost('Imperial tap drill: 1/4-20 UNC → 0.200 in', estimateImperialTapDrill(0.25,20), 0.20, 1e-3);
+  assertAlmost('Imperial tap drill: 1/2-20 UNF → 0.450 in', estimateImperialTapDrill(0.5,20), 0.45, 1e-3);
+
+  // Thread
+  const th = computeThreadMetrics(10, 1.5, 1);
+  assertAlmost('Thread: pitch → TPI = 25.4/1.5', th.tpi, 25.4/1.5, 1e-9);
+  assertAlmost('Thread: lead = 1.5 mm (1 start)', th.lead, 1.5, 1e-12);
+  assert('Thread: helix angle in (0, 90)', th.helix > 0 && th.helix < 90);
+  assertAlmost('Thread: 2-start lead = 4.0 mm', computeThreadMetrics(20,2,2).lead, 4.0, 1e-12);
+
+  // Quick convert unit sets
+  const L = unitSets.length;
+  assertAlmost('Length: 1 km → 1000 m', (1 / L.kilometres) * L.metres, 1000, 1e-9);
+  assertAlmost('Length: 1 mile → 1.60934 km', (1/L.miles)*L.kilometres, 1.60934, 1e-4);
+  const W = unitSets.weight;
+  assertAlmost('Weight: 1 kg → 2.20462 lb', (1/W.kilograms)*W.pounds, 2.20462, 1e-4);
+  const V = unitSets.volume;
+  assertAlmost('Volume: 1 US gallon → 3.78541 L', (1/V['US gallons'])*V.litres, 3.78541, 1e-4);
+  const S = unitSets.speed;
+  assertAlmost('Speed: 1 m/s → 3.6 km/h', (1/S['m/s'])*S['km/h'], 3.6, 1e-9);
+
+  // Angle
+  const A = unitSets.angle;
+  assertAlmost('Angle: 180° → π rad', (180/A.degrees)*A.radians, Math.PI, 1e-12);
+  assertAlmost('Angle: 1° → 60 arcminutes', (1/A.degrees)*A.arcminutes, 60, 1e-9);
+
+  // Fuel
+  assertAlmost('Fuel: 10 L/100km → ~28.25 mpg (US)', convertFuel(10,'L/100km','mpg (US)'), 235.214583/10, 1e-4);
+  assertAlmost('Fuel: round-trip L/100km', convertFuel(convertFuel(10,'L/100km','mpg (US)'),'mpg (US)','L/100km'), 10, 1e-6);
+}
+
+// ============================================================
+// VERSIONING
+// ============================================================
+(function() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const build = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
+  const updated = now.toLocaleDateString('en-AU', { day:'2-digit', month:'short', year:'numeric' });
+  const el = (id, t) => { const e = document.getElementById(id); if(e) e.textContent = t; };
+  el('pillVersion', `v1.1.0+${build}`);
+  el('pillUpdated', `Updated ${updated}`);
+  el('pillCopyright', `© ${now.getFullYear()} Ian Fraser`);
+})();
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function toggleTests() {
+  const card = document.getElementById('testCard');
+  const hidden = getComputedStyle(card).display === 'none';
+  card.style.display = hidden ? '' : 'none';
+  if (hidden) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function toggleAbout(show) {
+  const bd = document.getElementById('aboutBackdrop');
+  const vis = show ?? (bd.style.display === 'none' || bd.style.display === '');
+  bd.style.display = vis ? 'flex' : 'none';
+  if (vis) document.getElementById('aboutClose').focus();
+}
+
+window.addEventListener('keydown', e => { if (e.key === 'Escape') toggleAbout(false); });
+</script>
+</body>
+</html>
