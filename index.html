@@ -722,7 +722,7 @@
     <div class="modal-body">
       <p><strong>Magic Units Pro</strong> — engineer-friendly unit conversions.</p>
       <p>Created by <strong>Ian Fraser</strong><br>
-        <a href="mailto:gooptroop.ian@gmail.com">gooptroop.ian@gmail.com</a>
+        <a href="/cdn-cgi/l/email-protection#f6919999868284999986d89f9798b6919b979f9ad895999b"><span class="__cf_email__" data-cfemail="d0b7bfbfa0a4a2bfbfa0feb9b1be90b7bdb1b9bcfeb3bfbd">[email&#160;protected]</span></a>
       </p>
       <div style="margin: .75rem 0">
         <span class="pill" id="pillVersion">–</span>
@@ -734,7 +734,7 @@
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ============================================================
 // UTILITIES
 // ============================================================
@@ -830,23 +830,36 @@ function convertFuel(val, from, to) {
 let _currencyFetched = false;
 async function ensureCurrency() {
   const note = document.getElementById('fxNote');
-  if (!_currencyFetched) {
-    note.textContent = 'Showing indicative fallback rates — fetching live rates…';
-    note.className = 'note-text';
-  }
-  try {
-    const res = await fetch('https://api.frankfurter.app/latest?from=AUD');
-    const data = await res.json();
-    Object.assign(unitSets.currency, { AUD: 1, ...data.rates });
-    _currencyFetched = true;
-    note.textContent = `Live rates as of ${data.date} (Frankfurter.app)`;
-    note.className = 'note-text live';
-    if (document.getElementById('category').value === 'currency') updateUnits();
-  } catch {
-    if (!_currencyFetched) {
-      note.textContent = 'Live fetch failed — using indicative fallback rates. May not reflect current market prices.';
+  if (_currencyFetched) return;
+  note.textContent = 'Fetching live rates…';
+  note.className = 'note-text';
+
+  // Try primary, then mirror
+  const endpoints = [
+    'https://api.frankfurter.app/latest?from=AUD',
+    'https://www.frankfurter.app/latest?from=AUD'
+  ];
+
+  for (const url of endpoints) {
+    try {
+      const res = await fetch(url, { mode: 'cors' });
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (!data.rates) continue;
+      Object.assign(unitSets.currency, { AUD: 1, ...data.rates });
+      _currencyFetched = true;
+      note.textContent = `Live rates as of ${data.date} (Frankfurter.app)`;
+      note.className = 'note-text live';
+      if (document.getElementById('category').value === 'currency') updateUnits();
+      return;
+    } catch (e) {
+      // try next endpoint
     }
   }
+
+  // All endpoints failed — fallback already in place
+  note.textContent = 'Live rates unavailable — using indicative fallback rates (mid-2025). Not suitable for financial transactions.';
+  note.className = 'note-text';
 }
 
 function updateUnits() {
@@ -1313,12 +1326,4 @@ function toggleTests() {
 
 function toggleAbout(show) {
   const bd = document.getElementById('aboutBackdrop');
-  const vis = show ?? (bd.style.display === 'none' || bd.style.display === '');
-  bd.style.display = vis ? 'flex' : 'none';
-  if (vis) document.getElementById('aboutClose').focus();
-}
-
-window.addEventListener('keydown', e => { if (e.key === 'Escape') toggleAbout(false); });
-</script>
-</body>
-</html>
+  const vis = show ?? (bd.style.display === 'none'
